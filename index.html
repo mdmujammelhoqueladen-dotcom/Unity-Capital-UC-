@@ -1,0 +1,1169 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0f1923">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Unity Capital">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Unity Capital v2</title>
+<link href="https://fonts.googleapis.com/css2?family=Tiro+Bangla:ital@0;1&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy:#0f1923; --navy2:#162030; --navy3:#1e2d3d;
+  --gold:#c9a84c; --gold2:#e8c46a; --gold-dim:rgba(201,168,76,0.15);
+  --green:#2ecc71; --green-dim:rgba(46,204,113,0.12);
+  --red:#e74c3c; --red-dim:rgba(231,76,60,0.12);
+  --blue:#3498db; --blue-dim:rgba(52,152,219,0.12);
+  --text:#e8e8e8; --text2:#9ab; --border:rgba(255,255,255,0.07);
+  --radius:16px; --radius-sm:10px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;background:var(--navy);color:var(--text);font-family:'Tiro Bangla',serif;overflow:hidden;}
+
+/* PIN SCREEN */
+#pin-screen{position:fixed;inset:0;background:var(--navy);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px;}
+.pin-logo{width:110px;height:110px;border-radius:24px;margin-bottom:16px;object-fit:contain;background:white;padding:8px;}
+.pin-title{font-size:22px;font-weight:700;color:var(--gold);letter-spacing:2px;margin-bottom:4px;}
+.pin-sub{font-size:12px;color:var(--text2);margin-bottom:32px;text-align:center;}
+.pin-dots{display:flex;gap:14px;margin-bottom:28px;}
+.pin-dot{width:16px;height:16px;border-radius:50%;border:2px solid var(--gold);transition:all .2s;}
+.pin-dot.filled{background:var(--gold);}
+.pin-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:240px;}
+.pin-btn{height:64px;background:var(--navy2);border:1px solid var(--border);border-radius:14px;color:var(--text);font-size:22px;font-family:'IBM Plex Mono',monospace;font-weight:600;cursor:pointer;transition:all .15s;}
+.pin-btn:active{background:var(--gold-dim);border-color:var(--gold);transform:scale(0.94);}
+.pin-error{color:var(--red);font-size:13px;margin-top:12px;min-height:20px;text-align:center;}
+.pin-role-badge{padding:5px 16px;border-radius:20px;font-size:12px;margin-bottom:20px;}
+.viewer-badge{background:var(--blue-dim);color:var(--blue);border:1px solid var(--blue);}
+.editor-badge{background:var(--green-dim);color:var(--green);border:1px solid var(--green);}
+
+/* APP LAYOUT */
+#app{display:flex;flex-direction:column;height:100vh;max-width:480px;margin:0 auto;position:relative;}
+#header{background:var(--navy2);padding:10px 16px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;gap:10px;}
+#header img{width:38px;height:38px;border-radius:10px;object-fit:contain;background:white;padding:3px;}
+#header-text h1{font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:600;color:var(--gold);letter-spacing:1px;}
+#header-text p{font-size:10px;color:var(--text2);margin-top:1px;}
+#header-right{margin-left:auto;display:flex;align-items:center;gap:8px;}
+#role-pill{padding:3px 10px;border-radius:20px;font-size:10px;font-family:'IBM Plex Mono',monospace;}
+.pill-viewer{background:var(--blue-dim);color:var(--blue);}
+.pill-editor{background:var(--green-dim);color:var(--green);}
+#lock-btn{background:transparent;border:none;color:var(--text2);font-size:18px;cursor:pointer;padding:4px;}
+
+#content{flex:1;overflow-y:auto;padding:14px;padding-bottom:80px;}
+#content::-webkit-scrollbar{display:none;}
+#nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:var(--navy2);border-top:1px solid var(--border);display:flex;z-index:100;}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:9px 0;border:none;background:transparent;color:var(--text2);font-family:'Tiro Bangla',serif;font-size:10px;cursor:pointer;transition:color .2s;}
+.nav-btn .icon{font-size:19px;}
+.nav-btn.active{color:var(--gold);}
+
+/* PAGES */
+.page{display:none;animation:fadeIn .25s ease;}
+.page.active{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* CARDS & COMPONENTS */
+.card{background:var(--navy2);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:12px;}
+.card-title{font-size:11px;color:var(--text2);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px;}
+.sec-head{font-size:11px;color:var(--text2);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);margin-top:4px;}
+
+/* ASSET BANNER */
+.asset-banner{background:linear-gradient(135deg,#1a2f1a,#0f1923);border:1px solid rgba(46,204,113,0.3);border-radius:var(--radius);padding:18px;margin-bottom:12px;position:relative;overflow:hidden;}
+.asset-banner::before{content:'';position:absolute;top:-30px;right:-30px;width:100px;height:100px;background:radial-gradient(circle,rgba(46,204,113,0.15),transparent 70%);}
+.asset-label{font-size:11px;color:var(--text2);}
+.asset-value{font-family:'IBM Plex Mono',monospace;font-size:26px;font-weight:600;color:var(--green);margin:4px 0;}
+.asset-sub{display:flex;gap:20px;margin-top:8px;}
+.asset-sub-item .lbl{font-size:10px;color:var(--text2);}
+.asset-sub-item .val{font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:600;color:var(--blue);}
+
+.metrics-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+.metric{background:var(--navy2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;}
+.metric .m-label{font-size:10px;color:var(--text2);margin-bottom:4px;}
+.metric .m-value{font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600;}
+.metric.green .m-value{color:var(--green);} .metric.red .m-value{color:var(--red);}
+.metric.gold .m-value{color:var(--gold);} .metric.blue .m-value{color:var(--blue);}
+
+/* OWNERSHIP BARS */
+.ownership-list{display:flex;flex-direction:column;gap:8px;}
+.own-item{display:flex;align-items:center;gap:8px;}
+.own-name{width:90px;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.own-bar-wrap{flex:1;height:5px;background:var(--navy3);border-radius:3px;overflow:hidden;}
+.own-bar{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2));border-radius:3px;transition:width .6s cubic-bezier(.4,0,.2,1);}
+.own-pct{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--gold);width:44px;text-align:right;}
+
+/* FORMS */
+.form-group{margin-bottom:13px;}
+.form-group label{display:block;font-size:11px;color:var(--text2);margin-bottom:5px;}
+.form-group input,.form-group select,.form-group textarea{width:100%;background:var(--navy3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:11px 13px;color:var(--text);font-family:'Tiro Bangla',serif;font-size:14px;outline:none;transition:border-color .2s;}
+.form-group input:focus,.form-group select:focus{border-color:var(--gold);}
+.form-group select option{background:var(--navy2);}
+.form-group textarea{min-height:65px;resize:none;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.btn{width:100%;padding:13px;border:none;border-radius:var(--radius-sm);font-family:'Tiro Bangla',serif;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s;}
+.btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold2));color:var(--navy);}
+.btn-gold:active{transform:scale(0.97);}
+.btn-red{background:linear-gradient(135deg,#c0392b,#e74c3c);color:white;}
+.btn-outline{background:transparent;border:1px solid var(--gold);color:var(--gold);}
+.btn-sm{padding:7px 14px;font-size:12px;width:auto;border-radius:8px;}
+
+/* PENALTY BADGE */
+.penalty-badge{display:inline-block;padding:4px 10px;border-radius:20px;font-size:12px;font-family:'IBM Plex Mono',monospace;margin-top:6px;}
+.penalty-0{background:var(--green-dim);color:var(--green);}
+.penalty-100{background:rgba(230,126,34,0.15);color:#e67e22;}
+.penalty-200{background:var(--red-dim);color:var(--red);}
+
+/* TABS */
+.tabs{display:flex;background:var(--navy3);border-radius:var(--radius-sm);padding:3px;margin-bottom:14px;}
+.tab{flex:1;text-align:center;padding:8px 4px;border-radius:8px;font-size:12px;cursor:pointer;color:var(--text2);transition:all .2s;}
+.tab.active{background:var(--navy2);color:var(--gold);font-weight:700;box-shadow:0 2px 8px rgba(0,0,0,.3);}
+
+/* LIST ITEMS */
+.inv-item{background:var(--navy2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:13px;margin-bottom:10px;}
+.inv-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
+.inv-name{font-size:14px;font-weight:700;}
+.inv-badge{font-size:10px;padding:3px 8px;border-radius:20px;font-family:'IBM Plex Mono',monospace;}
+.badge-running{background:var(--blue-dim);color:var(--blue);}
+.badge-completed{background:var(--green-dim);color:var(--green);}
+.inv-row{display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-top:4px;}
+.inv-row span:last-child{font-family:'IBM Plex Mono',monospace;color:var(--text);}
+.action-btns{display:flex;gap:8px;margin-top:10px;}
+
+/* MEMBER */
+.member-selector{display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;margin-bottom:14px;}
+.member-selector::-webkit-scrollbar{display:none;}
+.mem-chip{flex-shrink:0;padding:6px 13px;background:var(--navy3);border:1px solid var(--border);border-radius:20px;font-size:12px;cursor:pointer;transition:all .2s;white-space:nowrap;}
+.mem-chip.active{background:var(--gold-dim);border-color:var(--gold);color:var(--gold);}
+.member-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+.member-stat{background:var(--navy3);border-radius:var(--radius-sm);padding:12px;text-align:center;}
+.member-stat .ms-val{font-family:'IBM Plex Mono',monospace;font-size:17px;font-weight:600;color:var(--gold);}
+.member-stat .ms-lbl{font-size:10px;color:var(--text2);margin-top:3px;}
+
+.hist-item{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border);}
+.hist-item:last-child{border-bottom:none;}
+.hist-month{font-size:12px;color:var(--text2);}
+.hist-amount{font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--green);}
+.hist-pen{font-size:11px;color:var(--red);}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;display:none;align-items:flex-end;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--navy2);border-radius:20px 20px 0 0;padding:20px;width:100%;max-width:480px;max-height:85vh;overflow-y:auto;animation:slideUp .3s ease;}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-title{font-size:16px;font-weight:700;color:var(--gold);margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;}
+.modal-close{background:transparent;border:none;color:var(--text2);font-size:22px;cursor:pointer;}
+
+/* BACKUP */
+.backup-option{background:var(--navy3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;margin-bottom:10px;cursor:pointer;transition:all .2s;}
+.backup-option:active{border-color:var(--gold);background:var(--gold-dim);}
+.backup-option h3{font-size:14px;font-weight:700;margin-bottom:4px;}
+.backup-option p{font-size:12px;color:var(--text2);}
+
+/* TOAST */
+#toast{position:fixed;bottom:88px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--navy3);border:1px solid var(--gold);color:var(--gold);padding:10px 20px;border-radius:20px;font-size:13px;opacity:0;transition:all .3s;pointer-events:none;z-index:999;white-space:nowrap;}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+.empty{text-align:center;padding:36px 20px;color:var(--text2);font-size:13px;}
+.empty .e-icon{font-size:34px;margin-bottom:10px;}
+.profit-row{display:flex;justify-content:space-between;align-items:center;padding:7px 12px;background:var(--green-dim);border-radius:8px;margin-top:8px;}
+.profit-row span{font-size:12px;color:var(--green);}
+.profit-row .pv{font-family:'IBM Plex Mono',monospace;font-weight:600;}
+</style>
+</head>
+<body>
+
+<!-- PIN SCREEN -->
+<div id="pin-screen">
+  <img src="data:image/png;base64,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" class="pin-logo" alt="Unity Capital">
+  <div class="pin-title">UNITY CAPITAL</div>
+  <div class="pin-sub">একতা • সঞ্চয় • বিনিয়োগ • সমৃদ্ধি<br>PIN দিয়ে প্রবেশ করুন</div>
+  <div class="pin-dots" id="pin-dots">
+    <div class="pin-dot" id="d0"></div>
+    <div class="pin-dot" id="d1"></div>
+    <div class="pin-dot" id="d2"></div>
+    <div class="pin-dot" id="d3"></div>
+  </div>
+  <div class="pin-grid">
+    <button class="pin-btn" onclick="pinPress('1')">1</button>
+    <button class="pin-btn" onclick="pinPress('2')">2</button>
+    <button class="pin-btn" onclick="pinPress('3')">3</button>
+    <button class="pin-btn" onclick="pinPress('4')">4</button>
+    <button class="pin-btn" onclick="pinPress('5')">5</button>
+    <button class="pin-btn" onclick="pinPress('6')">6</button>
+    <button class="pin-btn" onclick="pinPress('7')">7</button>
+    <button class="pin-btn" onclick="pinPress('8')">8</button>
+    <button class="pin-btn" onclick="pinPress('9')">9</button>
+    <button class="pin-btn" onclick="pinPress('clr')" style="font-size:14px;">⌫</button>
+    <button class="pin-btn" onclick="pinPress('0')">0</button>
+    <button class="pin-btn" onclick="pinPress('clr')" style="font-size:14px;color:var(--red);">✕</button>
+  </div>
+  <div class="pin-error" id="pin-error"></div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app" style="display:none;">
+  <div id="header">
+    <img src="data:image/png;base64,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" alt="UC Logo">
+    <div id="header-text">
+      <h1>UNITY CAPITAL</h1>
+      <p id="header-sub">লোড হচ্ছে...</p>
+    </div>
+    <div id="header-right">
+      <span id="role-pill" class="pill-viewer">VIEWER</span>
+      <button id="lock-btn" onclick="lockApp()" title="লক করুন">🔒</button>
+    </div>
+  </div>
+
+  <div id="content">
+    <!-- DASHBOARD -->
+    <div id="page-dashboard" class="page active">
+      <div class="asset-banner">
+        <div class="asset-label">মোট সম্পদ</div>
+        <div class="asset-value" id="d-total-assets">৳০</div>
+        <div class="asset-sub">
+          <div class="asset-sub-item"><div class="lbl">হাতে নগদ</div><div class="val" id="d-cash">৳০</div></div>
+          <div class="asset-sub-item"><div class="lbl">বিনিয়োগে</div><div class="val" id="d-invested">৳০</div></div>
+        </div>
+      </div>
+      <div class="metrics-grid">
+        <div class="metric green"><div class="m-label">মোট মূল জমা</div><div class="m-value" id="d-principal">৳০</div></div>
+        <div class="metric gold"><div class="m-label">মোট জরিমানা</div><div class="m-value" id="d-penalty">৳০</div></div>
+        <div class="metric green"><div class="m-label">মোট লাভ</div><div class="m-value" id="d-profit">৳০</div></div>
+        <div class="metric red"><div class="m-label">লোকসান + খরচ</div><div class="m-value" id="d-loss">৳০</div></div>
+      </div>
+      <div class="metrics-grid">
+        <div class="metric blue"><div class="m-label">সক্রিয় সদস্য</div><div class="m-value" id="d-members">০</div></div>
+        <div class="metric gold"><div class="m-label">চলমান বিনিয়োগ</div><div class="m-value" id="d-running-inv">০</div></div>
+      </div>
+      <div class="card">
+        <div class="card-title">⚙️ মালিকানা বিভাজন</div>
+        <div class="ownership-list" id="ownership-list"></div>
+      </div>
+      <!-- Backup shortcut -->
+      <div onclick="showPage('backup',document.querySelector('[data-page=backup]'))" style="background:var(--navy2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;">
+        <div><div style="font-size:13px;font-weight:700;">💾 ডেটা ব্যাকআপ</div><div style="font-size:11px;color:var(--text2);margin-top:2px;">Gmail এ সেভ বা রিস্টোর করুন</div></div>
+        <div style="color:var(--gold);font-size:18px;">›</div>
+      </div>
+    </div>
+
+    <!-- DEPOSIT -->
+    <div id="page-deposit" class="page">
+      <div class="sec-head">মাসিক চাঁদা এন্ট্রি</div>
+      <div id="editor-only-deposit">
+        <div class="card">
+          <div class="form-group"><label>সদস্য</label><select id="dep-member"></select></div>
+          <div class="form-row">
+            <div class="form-group"><label>মাস</label><input type="month" id="dep-month"></div>
+            <div class="form-group"><label>জমার তারিখ</label><input type="date" id="dep-date" oninput="calcPenalty()"></div>
+          </div>
+          <div class="form-group"><label>বকেয়া জরিমানা (৳)</label><input type="number" id="dep-due" placeholder="0" value="0" oninput="calcPenalty()"></div>
+          <div id="penalty-preview" style="margin-bottom:13px;display:none;">
+            <div style="font-size:12px;color:var(--text2);">মূল জমা: <span style="color:var(--text);font-family:'IBM Plex Mono',monospace;">৳২,০০০</span></div>
+            <span class="penalty-badge penalty-0" id="penalty-info">দেরি জরিমানা: ৳০</span>
+            <div style="margin-top:7px;font-size:13px;font-family:'IBM Plex Mono',monospace;color:var(--gold);">মোট: <span id="dep-total-preview">৳২,০০০</span></div>
+          </div>
+          <button class="btn btn-gold" onclick="saveDeposit()">✅ জমা সেভ করুন</button>
+        </div>
+      </div>
+      <div class="sec-head" style="margin-top:4px;">সাম্প্রতিক জমা</div>
+      <div id="recent-deposits"></div>
+    </div>
+
+    <!-- INVESTMENT -->
+    <div id="page-investment" class="page">
+      <div class="tabs">
+        <div class="tab active" onclick="invTab('list',this)">📋 তালিকা</div>
+        <div class="tab" onclick="invTab('add',this)">➕ নতুন</div>
+        <div class="tab" onclick="invTab('recovery',this)">🔄 রিকভারি</div>
+      </div>
+      <div id="inv-list-panel"><div id="inv-list-content"></div></div>
+      <div id="inv-add-panel" style="display:none;">
+        <div class="card">
+          <div class="form-group"><label>প্রকল্পের নাম</label><input type="text" id="inv-name" placeholder="যেমন: জমি ক্রয়"></div>
+          <div class="form-row">
+            <div class="form-group"><label>তারিখ</label><input type="date" id="inv-date"></div>
+            <div class="form-group"><label>পরিমাণ (৳)</label><input type="number" id="inv-amount" placeholder="০"></div>
+          </div>
+          <div class="form-group"><label>নোট</label><textarea id="inv-note" placeholder="বিবরণ..."></textarea></div>
+          <button class="btn btn-gold" onclick="saveInvestment()">✅ বিনিয়োগ যোগ করুন</button>
+        </div>
+      </div>
+      <div id="inv-recovery-panel" style="display:none;">
+        <div class="card">
+          <div class="form-group"><label>বিনিয়োগ</label><select id="rec-inv"></select></div>
+          <div class="form-group"><label>তারিখ</label><input type="date" id="rec-date"></div>
+          <div class="form-row">
+            <div class="form-group"><label>মূল অংশ (৳)</label><input type="number" id="rec-principal" placeholder="০" oninput="checkRecovery()"></div>
+            <div class="form-group"><label>লাভের অংশ (৳)</label><input type="number" id="rec-profit" placeholder="০" oninput="checkRecovery()"></div>
+          </div>
+          <div id="rec-check" style="margin-bottom:12px;"></div>
+          <button class="btn btn-gold" onclick="saveRecovery()">✅ রিকভারি সেভ করুন</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MEMBERS -->
+    <div id="page-members" class="page">
+      <div class="tabs">
+        <div class="tab active" onclick="memTab('profile',this)">👤 প্রোফাইল</div>
+        <div class="tab" onclick="memTab('add',this)">➕ নতুন</div>
+        <div class="tab" onclick="memTab('exit',this)">🚪 Exit</div>
+      </div>
+      <div id="mem-profile-panel">
+        <div class="member-selector" id="member-chips"></div>
+        <div id="member-profile-content"></div>
+      </div>
+      <div id="mem-add-panel" style="display:none;">
+        <div class="card">
+          <div class="form-group"><label>সদস্যের নাম</label><input type="text" id="new-mem-name" placeholder="পূর্ণ নাম"></div>
+          <div class="form-group"><label>যোগদানের তারিখ</label><input type="date" id="new-mem-date"></div>
+          <button class="btn btn-gold" onclick="addMember()">✅ সদস্য যোগ করুন</button>
+          <p style="font-size:11px;color:var(--text2);margin-top:10px;text-align:center;">সর্বসম্মত অনুমোদন আবশ্যক</p>
+        </div>
+      </div>
+      <div id="mem-exit-panel" style="display:none;">
+        <div class="card">
+          <div class="form-group"><label>সদস্য</label><select id="exit-member" onchange="showExitPreview()"></select></div>
+          <div id="exit-preview" style="margin-bottom:14px;"></div>
+          <button class="btn btn-red" onclick="processMemberExit()">🚪 Exit প্রক্রিয়া করুন</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- BACKUP PAGE -->
+    <div id="page-backup" class="page">
+      <div class="sec-head">💾 ডেটা ব্যাকআপ ও রিস্টোর</div>
+
+      <!-- Google Login -->
+      <div id="google-status" style="margin-bottom:12px;"></div>
+
+      <!-- Drive Options -->
+      <div class="backup-option" onclick="backupToDrive()">
+        <h3>☁️ Google Drive এ ব্যাকআপ</h3>
+        <p>সব ডেটা Google Drive এ সেভ হবে। যেকোনো ফোনে Gmail দিয়ে ফিরিয়ে আনা যাবে।</p>
+      </div>
+      <div class="backup-option" onclick="restoreFromDrive()">
+        <h3>🔄 Google Drive থেকে রিস্টোর</h3>
+        <p>আগের ব্যাকআপ Drive থেকে অটো লোড হবে।</p>
+      </div>
+
+      <div style="text-align:center;font-size:11px;color:var(--text2);margin:8px 0;">── অথবা ──</div>
+
+      <div class="backup-option" onclick="downloadBackup()">
+        <h3>📥 ফাইল ডাউনলোড</h3>
+        <p>JSON ফাইল হিসেবে ফোনে সেভ করুন।</p>
+      </div>
+      <div class="backup-option" onclick="document.getElementById('restore-file').click()">
+        <h3>📤 ফাইল থেকে রিস্টোর</h3>
+        <p>আগের ব্যাকআপ ফাইল থেকে ডেটা ফিরিয়ে আনুন।</p>
+      </div>
+      <input type="file" id="restore-file" accept=".json" style="display:none;" onchange="restoreFromFile(this)">
+
+      <div class="card" style="margin-top:8px;">
+        <div id="backup-status" style="font-size:11px;color:var(--green);margin-bottom:6px;"></div>
+        <div style="font-size:12px;color:var(--text2);line-height:1.7;">
+          ⚠️ <strong style="color:var(--gold);">সতর্কতা:</strong> রিস্টোর করলে বর্তমান সব ডেটা মুছে যাবে।<br>
+          💡 <strong style="color:var(--green);">পরামর্শ:</strong> প্রতি মাসে একবার Drive ব্যাকআপ নিন।
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <nav id="nav">
+    <button class="nav-btn active" onclick="showPage('dashboard',this)"><span class="icon">📊</span>ড্যাশবোর্ড</button>
+    <button class="nav-btn" onclick="showPage('deposit',this)"><span class="icon">💳</span>চাঁদা</button>
+    <button class="nav-btn" onclick="showPage('investment',this)"><span class="icon">📈</span>বিনিয়োগ</button>
+    <button class="nav-btn" onclick="showPage('members',this)"><span class="icon">👥</span>সদস্য</button>
+    <button class="nav-btn" data-page="backup" onclick="showPage('backup',this)"><span class="icon">💾</span>ব্যাকআপ</button>
+  </nav>
+</div>
+
+<!-- EDIT MODAL -->
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal">
+    <div class="modal-title"><span id="edit-modal-title">এন্ট্রি এডিট</span><button class="modal-close" onclick="closeModal()">×</button></div>
+    <div id="edit-modal-body"></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════
+let currentRole = null; // 'viewer' | 'editor'
+let pinBuffer = '';
+
+const PINS = { viewer: '1234', editor: '9966' };
+
+const DEFAULT_MEMBERS = [{"id": "M001", "name": "MH Shuvo", "joinDate": "2026-06-01", "status": "Active"}, {"id": "M002", "name": "Mujammel Hoque", "joinDate": "2026-06-01", "status": "Active"}, {"id": "M003", "name": "Sajjat Jamil", "joinDate": "2026-06-01", "status": "Active"}, {"id": "M004", "name": "Shahidullah jr", "joinDate": "2026-06-01", "status": "Active"}, {"id": "M005", "name": "A.A. Rabbani", "joinDate": "2026-06-01", "status": "Active"}, {"id": "M006", "name": "Asadullah Galib", "joinDate": "2026-06-01", "status": "Active"}, {"id": "M007", "name": "Mohammad Iqbal", "joinDate": "2026-06-01", "status": "Active"}, {"id": "M008", "name": "Kawsar", "joinDate": "2026-06-01", "status": "Active"}];
+
+// ══════════════════════════════════════════════
+// PIN SYSTEM
+// ══════════════════════════════════════════════
+function pinPress(val) {
+  if(val === 'clr') {
+    pinBuffer = pinBuffer.slice(0,-1);
+  } else if(pinBuffer.length < 4) {
+    pinBuffer += val;
+  }
+  updatePinDots();
+  if(pinBuffer.length === 4) checkPin();
+}
+
+function updatePinDots() {
+  for(let i=0;i<4;i++) {
+    document.getElementById('d'+i).classList.toggle('filled', i < pinBuffer.length);
+  }
+}
+
+function checkPin() {
+  setTimeout(() => {
+    if(pinBuffer === PINS.editor) {
+      currentRole = 'editor';
+      enterApp();
+    } else if(pinBuffer === PINS.viewer) {
+      currentRole = 'viewer';
+      enterApp();
+    } else {
+      document.getElementById('pin-error').textContent = '❌ ভুল PIN! আবার চেষ্টা করুন।';
+      pinBuffer = '';
+      updatePinDots();
+      setTimeout(()=>document.getElementById('pin-error').textContent='', 2000);
+    }
+  }, 150);
+}
+
+function enterApp() {
+  document.getElementById('pin-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  const pill = document.getElementById('role-pill');
+  if(currentRole === 'editor') {
+    pill.textContent = 'EDITOR';
+    pill.className = 'pill-editor';
+  } else {
+    pill.textContent = 'VIEWER';
+    pill.className = 'pill-viewer';
+  }
+  applyRoleRestrictions();
+  seedIfEmpty();
+  renderDashboard();
+  renderDepositPage();
+}
+
+function lockApp() {
+  currentRole = null;
+  pinBuffer = '';
+  updatePinDots();
+  document.getElementById('pin-screen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('pin-error').textContent = '';
+}
+
+function applyRoleRestrictions() {
+  const isEditor = currentRole === 'editor';
+  // Hide editor-only sections for viewer
+  document.querySelectorAll('#editor-only-deposit, #inv-add-panel, #inv-recovery-panel, #mem-add-panel, #mem-exit-panel').forEach(el => {
+    if(el) el.style.opacity = isEditor ? '1' : '0.4';
+    if(el) el.style.pointerEvents = isEditor ? 'auto' : 'none';
+  });
+}
+
+// ══════════════════════════════════════════════
+// DATA
+// ══════════════════════════════════════════════
+const DB = {
+  get: k => JSON.parse(localStorage.getItem('uc_'+k) || 'null'),
+  set: (k,v) => localStorage.setItem('uc_'+k, JSON.stringify(v)),
+};
+
+function loadData() {
+  return {
+    members: DB.get('members') || [],
+    deposits: DB.get('deposits') || [],
+    investments: DB.get('investments') || [],
+    recoveries: DB.get('recoveries') || [],
+    expenses: DB.get('expenses') || [],
+  };
+}
+function saveAll(d) {
+  ['members','deposits','investments','recoveries','expenses'].forEach(k => DB.set(k, d[k]));
+}
+
+function seedIfEmpty() {
+  const d = loadData();
+  if(d.members.length === 0) {
+    d.members = DEFAULT_MEMBERS;
+    saveAll(d);
+  }
+}
+
+// ══════════════════════════════════════════════
+// CALCULATIONS
+// ══════════════════════════════════════════════
+function calcStats() {
+  const d = loadData();
+  const activeMem = d.members.filter(m=>m.status==='Active');
+  const principalMap = {};
+  d.members.forEach(m => principalMap[m.id] = 0);
+  d.deposits.forEach(dep => { if(principalMap[dep.memberId]!==undefined) principalMap[dep.memberId] += (dep.principal||2000); });
+  const totalPrincipal = d.deposits.reduce((s,x)=>s+(x.principal||2000),0);
+  const totalPenalty   = d.deposits.reduce((s,x)=>s+(x.latePenalty||0)+(x.duePenalty||0),0);
+  const totalInvested  = d.investments.filter(i=>i.status==='Running').reduce((s,i)=>s+i.amount,0);
+  const totalProfit    = d.recoveries.reduce((s,r)=>s+(r.profit||0),0);
+  const totalLoss      = d.investments.reduce((s,i)=>s+(i.loss||0),0);
+  const totalExpenses  = d.expenses.reduce((s,e)=>s+(e.amount||0),0);
+  const totalAssets    = totalPrincipal + totalPenalty + totalProfit - totalLoss - totalExpenses;
+  const cashBalance    = totalAssets - totalInvested;
+  const totalActivePrincipal = activeMem.reduce((s,m)=>s+(principalMap[m.id]||0),0);
+  const ownership = {};
+  activeMem.forEach(m => { ownership[m.id] = totalActivePrincipal > 0 ? (principalMap[m.id]||0)/totalActivePrincipal : 1/activeMem.length; });
+  return { totalPrincipal, totalPenalty, totalInvested, totalProfit, totalLoss: totalLoss+totalExpenses, totalAssets, cashBalance, ownership, principalMap, activeMem, runningInv: d.investments.filter(i=>i.status==='Running').length };
+}
+
+function fmt(n) { return '৳'+Math.abs(Math.round(n)).toLocaleString('en-IN'); }
+function fmtPct(n) { return (n*100).toFixed(2)+'%'; }
+
+// ══════════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════════
+function showPage(name, btn) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  if(btn) btn.classList.add('active');
+  if(name==='dashboard') renderDashboard();
+  if(name==='deposit') renderDepositPage();
+  if(name==='investment') renderInvestmentList();
+  if(name==='members') renderMembersPage();
+}
+
+// ══════════════════════════════════════════════
+// DASHBOARD
+// ══════════════════════════════════════════════
+function renderDashboard() {
+  const s = calcStats();
+  document.getElementById('d-total-assets').textContent = fmt(s.totalAssets);
+  document.getElementById('d-cash').textContent = fmt(s.cashBalance);
+  document.getElementById('d-invested').textContent = fmt(s.totalInvested);
+  document.getElementById('d-principal').textContent = fmt(s.totalPrincipal);
+  document.getElementById('d-penalty').textContent = fmt(s.totalPenalty);
+  document.getElementById('d-profit').textContent = fmt(s.totalProfit);
+  document.getElementById('d-loss').textContent = fmt(s.totalLoss);
+  document.getElementById('d-members').textContent = s.activeMem.length;
+  document.getElementById('d-running-inv').textContent = s.runningInv;
+  const ol = document.getElementById('ownership-list');
+  ol.innerHTML = s.activeMem.map(m => {
+    const pct = s.ownership[m.id]||0;
+    return `<div class="own-item"><div class="own-name">${m.name}</div><div class="own-bar-wrap"><div class="own-bar" style="width:${pct*100}%"></div></div><div class="own-pct">${fmtPct(pct)}</div></div>`;
+  }).join('') || '<div style="color:var(--text2);font-size:12px;">কোনো সদস্য নেই</div>';
+  const now = new Date();
+  document.getElementById('header-sub').textContent = 'আপডেট: '+now.toLocaleTimeString('bn-BD',{hour:'2-digit',minute:'2-digit'});
+}
+
+// ══════════════════════════════════════════════
+// DEPOSITS
+// ══════════════════════════════════════════════
+function renderDepositPage() {
+  const d = loadData();
+  const sel = document.getElementById('dep-member');
+  sel.innerHTML = d.members.filter(m=>m.status==='Active').map(m=>`<option value="${m.id}">${m.name}</option>`).join('');
+  const now = new Date();
+  document.getElementById('dep-month').value = now.toISOString().slice(0,7);
+  document.getElementById('dep-date').value = now.toISOString().slice(0,10);
+  calcPenalty();
+  renderRecentDeposits();
+}
+
+function calcPenalty() {
+  const dateVal = document.getElementById('dep-date').value;
+  if(!dateVal) return;
+  const day = parseInt(dateVal.split('-')[2]);
+  let penalty=0, cls='penalty-0', txt='দেরি জরিমানা: ৳০ ✅';
+  if(day>=11&&day<=20){penalty=100;cls='penalty-100';txt='দেরি জরিমানা: ৳১০০ ⚠️';}
+  else if(day>=21){penalty=200;cls='penalty-200';txt='দেরি জরিমানা: ৳২০০ ❌';}
+  const due=parseInt(document.getElementById('dep-due').value)||0;
+  const total=2000+penalty+due;
+  const pi=document.getElementById('penalty-info');
+  pi.className='penalty-badge '+cls; pi.textContent=txt;
+  document.getElementById('dep-total-preview').textContent='৳'+total.toLocaleString('en-IN');
+  document.getElementById('penalty-preview').style.display='block';
+}
+
+function saveDeposit() {
+  if(currentRole!=='editor'){showToast('🔒 শুধু Editor এন্ট্রি দিতে পারবে');return;}
+  const d=loadData();
+  const memberId=document.getElementById('dep-member').value;
+  const month=document.getElementById('dep-month').value;
+  const depDate=document.getElementById('dep-date').value;
+  const due=parseInt(document.getElementById('dep-due').value)||0;
+  if(!memberId||!month||!depDate){showToast('❌ সব তথ্য পূরণ করুন');return;}
+  const day=parseInt(depDate.split('-')[2]);
+  const latePenalty=day<=10?0:day<=20?100:200;
+  d.deposits.push({id:Date.now(),memberId,month,depDate,principal:2000,latePenalty,duePenalty:due,total:2000+latePenalty+due,createdAt:new Date().toISOString()});
+  saveAll(d); showToast('✅ জমা সেভ হয়েছে!');
+  renderRecentDeposits();
+  document.getElementById('dep-due').value=0; calcPenalty();
+}
+
+function renderRecentDeposits() {
+  const d=loadData();
+  const container=document.getElementById('recent-deposits');
+  const recent=[...d.deposits].reverse().slice(0,15);
+  const memberMap={};
+  d.members.forEach(m=>memberMap[m.id]=m.name);
+  if(!recent.length){container.innerHTML='<div class="empty"><div class="e-icon">💳</div>এখনো কোনো জমা নেই</div>';return;}
+  container.innerHTML=recent.map(dep=>`
+    <div class="hist-item">
+      <div>
+        <div style="font-size:13px;font-weight:700;">${memberMap[dep.memberId]||'?'}</div>
+        <div class="hist-month">${dep.month} · ${dep.depDate}</div>
+        ${dep.latePenalty||dep.duePenalty?`<span class="hist-pen">জরিমানা: ৳${dep.latePenalty+dep.duePenalty}</span>`:'<span style="font-size:11px;color:var(--green);">সময়মতো ✅</span>'}
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <div class="hist-amount">${fmt(dep.total)}</div>
+        ${currentRole==='editor'?`<button onclick="editDeposit(${dep.id})" style="background:var(--navy3);border:1px solid var(--border);color:var(--gold);border-radius:6px;padding:4px 8px;font-size:11px;cursor:pointer;">✏️</button>`:''}</div>
+    </div>`).join('');
+}
+
+// ══════════════════════════════════════════════
+// INVESTMENTS
+// ══════════════════════════════════════════════
+function invTab(name,el) {
+  document.querySelectorAll('#page-investment .tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('inv-list-panel').style.display=name==='list'?'block':'none';
+  document.getElementById('inv-add-panel').style.display=name==='add'?'block':'none';
+  document.getElementById('inv-recovery-panel').style.display=name==='recovery'?'block':'none';
+  if(name==='list') renderInvestmentList();
+  if(name==='recovery') populateRecoveryDropdown();
+  if(currentRole!=='editor'&&name!=='list'){showToast('🔒 শুধু Editor এন্ট্রি দিতে পারবে');}
+}
+
+function renderInvestmentList() {
+  const d=loadData();
+  const container=document.getElementById('inv-list-content');
+  if(!d.investments.length){container.innerHTML='<div class="empty"><div class="e-icon">📈</div>কোনো বিনিয়োগ নেই</div>';return;}
+  const recMap={};
+  d.recoveries.forEach(r=>{if(!recMap[r.invId])recMap[r.invId]={principal:0,profit:0};recMap[r.invId].principal+=r.principal||0;recMap[r.invId].profit+=r.profit||0;});
+  container.innerHTML=d.investments.map(inv=>{
+    const rec=recMap[inv.id]||{principal:0,profit:0};
+    const badge=inv.status==='Running'?'badge-running':'badge-completed';
+    const statusTxt=inv.status==='Running'?'চলমান':'সমাপ্ত';
+    return `<div class="inv-item">
+      <div class="inv-header"><div class="inv-name">${inv.name}</div><div class="inv-badge ${badge}">${statusTxt}</div></div>
+      <div class="inv-row"><span>বিনিয়োগ</span><span>${fmt(inv.amount)}</span></div>
+      <div class="inv-row"><span>ফেরত মূল</span><span>${fmt(rec.principal)}</span></div>
+      ${rec.profit>0?`<div class="profit-row"><span>মোট লাভ</span><span class="pv">${fmt(rec.profit)}</span></div>`:''}
+      <div class="inv-row" style="margin-top:6px;font-size:11px;"><span>তারিখ</span><span>${inv.date}</span></div>
+      ${currentRole==='editor'?`<div class="action-btns">
+        ${inv.status==='Running'?`<button onclick="markCompleted('${inv.id}')" style="flex:1;padding:8px;background:var(--green-dim);color:var(--green);border:1px solid var(--green);border-radius:8px;font-size:12px;cursor:pointer;">✅ সমাপ্ত</button>`:''}</div>`:''}
+    </div>`;
+  }).join('');
+}
+
+function saveInvestment() {
+  if(currentRole!=='editor'){showToast('🔒 শুধু Editor এন্ট্রি দিতে পারবে');return;}
+  const d=loadData();
+  const name=document.getElementById('inv-name').value.trim();
+  const date=document.getElementById('inv-date').value;
+  const amount=parseFloat(document.getElementById('inv-amount').value)||0;
+  const note=document.getElementById('inv-note').value.trim();
+  if(!name||!date||!amount){showToast('❌ সব তথ্য পূরণ করুন');return;}
+  const s=calcStats();
+  if(amount>s.cashBalance){showToast('⚠️ হাতে পর্যাপ্ত নগদ নেই!');return;}
+  d.investments.push({id:'INV-'+Date.now(),name,date,amount,loss:0,status:'Running',note,createdAt:new Date().toISOString()});
+  saveAll(d); showToast('✅ বিনিয়োগ যোগ হয়েছে!');
+  ['inv-name','inv-note'].forEach(id=>document.getElementById(id).value='');
+  ['inv-date','inv-amount'].forEach(id=>document.getElementById(id).value='');
+}
+
+function markCompleted(id) {
+  const d=loadData();
+  const inv=d.investments.find(i=>i.id===id);
+  if(inv){inv.status='Completed';saveAll(d);renderInvestmentList();showToast('✅ সমাপ্ত চিহ্নিত!');}
+}
+
+function populateRecoveryDropdown() {
+  const d=loadData();
+  const sel=document.getElementById('rec-inv');
+  const running=d.investments.filter(i=>i.status==='Running');
+  sel.innerHTML=running.length?running.map(i=>`<option value="${i.id}">${i.name} (${fmt(i.amount)})</option>`).join(''):'<option>চলমান বিনিয়োগ নেই</option>';
+  document.getElementById('rec-date').value=new Date().toISOString().slice(0,10);
+}
+
+function checkRecovery() {
+  const p=parseFloat(document.getElementById('rec-principal').value)||0;
+  const pr=parseFloat(document.getElementById('rec-profit').value)||0;
+  document.getElementById('rec-check').innerHTML=`<div style="font-size:13px;color:var(--gold);font-family:'IBM Plex Mono',monospace;">মোট: ${fmt(p+pr)}</div>`;
+}
+
+function saveRecovery() {
+  if(currentRole!=='editor'){showToast('🔒 শুধু Editor এন্ট্রি দিতে পারবে');return;}
+  const d=loadData();
+  const invId=document.getElementById('rec-inv').value;
+  const date=document.getElementById('rec-date').value;
+  const principal=parseFloat(document.getElementById('rec-principal').value)||0;
+  const profit=parseFloat(document.getElementById('rec-profit').value)||0;
+  if(!invId||!date){showToast('❌ তথ্য পূরণ করুন');return;}
+  d.recoveries.push({id:Date.now(),invId,date,principal,profit,createdAt:new Date().toISOString()});
+  const inv=d.investments.find(i=>i.id===invId);
+  if(inv){
+    const totalRec=d.recoveries.filter(r=>r.invId===invId).reduce((s,r)=>s+r.principal,0);
+    if(totalRec>=inv.amount) inv.status='Completed';
+  }
+  saveAll(d); showToast('✅ রিকভারি সেভ হয়েছে!');
+  ['rec-principal','rec-profit'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('rec-check').innerHTML='';
+}
+
+// ══════════════════════════════════════════════
+// MEMBERS
+// ══════════════════════════════════════════════
+let selectedMemberId=null;
+
+function renderMembersPage() {
+  const d=loadData();
+  const chips=document.getElementById('member-chips');
+  chips.innerHTML=d.members.map((m,i)=>`<div class="mem-chip${i===0?' active':''}" onclick="selectMember('${m.id}',this)">${m.name}</div>`).join('');
+  if(d.members.length){selectedMemberId=d.members[0].id;renderMemberProfile();}
+  const exitSel=document.getElementById('exit-member');
+  exitSel.innerHTML=d.members.filter(m=>m.status==='Active').map(m=>`<option value="${m.id}">${m.name}</option>`).join('');
+  showExitPreview();
+}
+
+function selectMember(id,el) {
+  selectedMemberId=id;
+  document.querySelectorAll('.mem-chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  renderMemberProfile();
+}
+
+function renderMemberProfile() {
+  if(!selectedMemberId) return;
+  const d=loadData();
+  const m=d.members.find(x=>x.id===selectedMemberId);
+  if(!m) return;
+  const s=calcStats();
+  const principal=s.principalMap[m.id]||0;
+  const penalty=d.deposits.filter(dep=>dep.memberId===m.id).reduce((s,x)=>s+(x.latePenalty||0)+(x.duePenalty||0),0);
+  const ownership=s.ownership[m.id]||0;
+  const currentVal=s.totalAssets*ownership;
+  const canExit=s.cashBalance>=currentVal;
+  const deposits=d.deposits.filter(dep=>dep.memberId===m.id).reverse();
+  document.getElementById('member-profile-content').innerHTML=`
+    <div class="card">
+      <div style="text-align:center;margin-bottom:14px;">
+        <div style="font-size:18px;font-weight:700;color:var(--gold);">${m.name}</div>
+        <div style="font-size:11px;color:var(--text2);">যোগদান: ${m.joinDate} · ${m.status==='Active'?'✅ সক্রিয়':'❌ বের হয়েছেন'}</div>
+      </div>
+      <div class="member-grid">
+        <div class="member-stat"><div class="ms-val">${fmt(principal)}</div><div class="ms-lbl">মূল জমা</div></div>
+        <div class="member-stat"><div class="ms-val">${fmt(penalty)}</div><div class="ms-lbl">জরিমানা</div></div>
+        <div class="member-stat"><div class="ms-val">${fmtPct(ownership)}</div><div class="ms-lbl">মালিকানা</div></div>
+        <div class="member-stat"><div class="ms-val">${fmt(currentVal)}</div><div class="ms-lbl">বর্তমান মূল্য</div></div>
+      </div>
+      <div style="background:var(--navy3);border-radius:8px;padding:12px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:12px;color:var(--text2);">Exit মূল্য</span>
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:700;color:var(--gold);">${fmt(currentVal)}</span>
+        </div>
+        <div style="font-size:11px;color:${canExit?'var(--green)':'var(--red)'};margin-top:4px;">${canExit?'✅ পরিশোধ সম্ভব':'⏳ পর্যাপ্ত নগদ নেই'}</div>
+      </div>
+    </div>
+    <div class="sec-head">জমার ইতিহাস</div>
+    <div class="card">
+      ${deposits.length?deposits.slice(0,10).map(dep=>`
+        <div class="hist-item">
+          <div><div class="hist-month">${dep.month} · ${dep.depDate}</div>
+          ${dep.latePenalty||dep.duePenalty?`<span class="hist-pen">জরিমানা: ৳${dep.latePenalty+dep.duePenalty}</span>`:'<span style="font-size:11px;color:var(--green);">সময়মতো ✅</span>'}</div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div class="hist-amount">${fmt(dep.total)}</div>
+            ${currentRole==='editor'?`<button onclick="editDeposit(${dep.id})" style="background:var(--navy3);border:1px solid var(--border);color:var(--gold);border-radius:6px;padding:4px 8px;font-size:11px;cursor:pointer;">✏️</button>`:''}
+          </div>
+        </div>`).join(''):'<div style="color:var(--text2);font-size:12px;text-align:center;padding:10px;">জমা নেই</div>'}
+    </div>`;
+}
+
+function addMember() {
+  if(currentRole!=='editor'){showToast('🔒 শুধু Editor করতে পারবে');return;}
+  const d=loadData();
+  const name=document.getElementById('new-mem-name').value.trim();
+  const date=document.getElementById('new-mem-date').value;
+  if(!name||!date){showToast('❌ নাম ও তারিখ দিন');return;}
+  const id='M'+String(d.members.length+1).padStart(3,'0');
+  d.members.push({id,name,joinDate:date,status:'Active'});
+  saveAll(d); showToast('✅ সদস্য যোগ হয়েছে!');
+  document.getElementById('new-mem-name').value='';
+  document.getElementById('new-mem-date').value='';
+  renderMembersPage();
+}
+
+function showExitPreview() {
+  const d=loadData();
+  const id=document.getElementById('exit-member').value;
+  if(!id) return;
+  const s=calcStats();
+  const ownership=s.ownership[id]||0;
+  const exitVal=s.totalAssets*ownership;
+  const canExit=s.cashBalance>=exitVal;
+  document.getElementById('exit-preview').innerHTML=`
+    <div style="background:var(--navy3);border-radius:8px;padding:12px;">
+      <div class="inv-row"><span>মালিকানা</span><span>${fmtPct(ownership)}</span></div>
+      <div class="inv-row"><span>Exit মূল্য</span><span style="color:var(--gold);font-family:'IBM Plex Mono',monospace;">${fmt(exitVal)}</span></div>
+      <div class="inv-row"><span>হাতে নগদ</span><span>${fmt(s.cashBalance)}</span></div>
+      <div style="font-size:12px;color:${canExit?'var(--green)':'var(--red)'};margin-top:8px;font-weight:700;">${canExit?'✅ পরিশোধ সম্ভব':'⏳ পর্যাপ্ত নগদ নেই'}</div>
+    </div>`;
+}
+
+function processMemberExit() {
+  if(currentRole!=='editor'){showToast('🔒 শুধু Editor করতে পারবে');return;}
+  const d=loadData();
+  const id=document.getElementById('exit-member').value;
+  const m=d.members.find(x=>x.id===id);
+  if(!m||!confirm(m.name+'-কে Exit করাতে চান?')) return;
+  m.status='Exited'; saveAll(d);
+  showToast('✅ Exit সম্পন্ন'); renderMembersPage();
+}
+
+function memTab(name,el) {
+  document.querySelectorAll('#page-members .tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('mem-profile-panel').style.display=name==='profile'?'block':'none';
+  document.getElementById('mem-add-panel').style.display=name==='add'?'block':'none';
+  document.getElementById('mem-exit-panel').style.display=name==='exit'?'block':'none';
+  if(name==='exit') showExitPreview();
+}
+
+// ══════════════════════════════════════════════
+// EDIT MODAL
+// ══════════════════════════════════════════════
+function editDeposit(id) {
+  if(currentRole!=='editor'){showToast('🔒 শুধু Editor এডিট করতে পারবে');return;}
+  const d=loadData();
+  const dep=d.deposits.find(x=>x.id===id);
+  if(!dep) return;
+  const memberMap={};
+  d.members.forEach(m=>memberMap[m.id]=m.name);
+  document.getElementById('edit-modal-title').textContent='জমা এডিট করুন';
+  document.getElementById('edit-modal-body').innerHTML=`
+    <div class="form-group"><label>সদস্য</label><input type="text" value="${memberMap[dep.memberId]||'?'}" disabled style="opacity:.6;"></div>
+    <div class="form-row">
+      <div class="form-group"><label>মাস</label><input type="month" id="edit-dep-month" value="${dep.month}"></div>
+      <div class="form-group"><label>তারিখ</label><input type="date" id="edit-dep-date" value="${dep.depDate}"></div>
+    </div>
+    <div class="form-group"><label>বকেয়া জরিমানা (৳)</label><input type="number" id="edit-dep-due" value="${dep.duePenalty||0}"></div>
+    <div style="display:flex;gap:10px;margin-top:4px;">
+      <button class="btn btn-gold" onclick="saveEditDeposit(${id})">✅ সেভ করুন</button>
+      <button class="btn btn-red" onclick="deleteDeposit(${id})" style="flex:0.5;">🗑️</button>
+    </div>`;
+  openModal();
+}
+
+function saveEditDeposit(id) {
+  const d=loadData();
+  const dep=d.deposits.find(x=>x.id===id);
+  if(!dep) return;
+  dep.month=document.getElementById('edit-dep-month').value;
+  dep.depDate=document.getElementById('edit-dep-date').value;
+  dep.duePenalty=parseInt(document.getElementById('edit-dep-due').value)||0;
+  const day=parseInt(dep.depDate.split('-')[2]);
+  dep.latePenalty=day<=10?0:day<=20?100:200;
+  dep.total=dep.principal+dep.latePenalty+dep.duePenalty;
+  saveAll(d); closeModal(); showToast('✅ আপডেট হয়েছে!');
+  renderRecentDeposits(); renderDashboard();
+}
+
+function deleteDeposit(id) {
+  if(!confirm('এই জমা মুছে ফেলবেন?')) return;
+  const d=loadData();
+  d.deposits=d.deposits.filter(x=>x.id!==id);
+  saveAll(d); closeModal(); showToast('🗑️ মুছে ফেলা হয়েছে');
+  renderRecentDeposits(); renderDashboard();
+}
+
+function openModal() { document.getElementById('edit-modal').classList.add('open'); }
+function closeModal() { document.getElementById('edit-modal').classList.remove('open'); }
+document.getElementById('edit-modal').addEventListener('click', function(e){ if(e.target===this) closeModal(); });
+
+// ══════════════════════════════════════════════
+// BACKUP & RESTORE
+// ══════════════════════════════════════════════
+function getBackupData() {
+  const d=loadData();
+  return JSON.stringify({
+    version: 2,
+    exportDate: new Date().toISOString(),
+    app: 'Unity Capital v2',
+    data: d
+  }, null, 2);
+}
+
+function backupToGmail() {
+  const backup=getBackupData();
+  const subject='Unity Capital Backup - '+new Date().toLocaleDateString('bn-BD');
+  const body=encodeURIComponent('Unity Capital ব্যাকআপ ডেটা:\n\n'+backup);
+  window.open(`mailto:?subject=${encodeURIComponent(subject)}&body=${body}`);
+  showToast('📧 Gmail খুলছে...');
+}
+
+function downloadBackup() {
+  const backup=getBackupData();
+  const blob=new Blob([backup],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download='unity-capital-backup-'+new Date().toISOString().slice(0,10)+'.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('✅ ডাউনলোড শুরু হয়েছে!');
+}
+
+function restoreFromFile(input) {
+  if(currentRole!=='editor'){showToast('🔒 শুধু Editor রিস্টোর করতে পারবে');return;}
+  const file=input.files[0];
+  if(!file) return;
+  const reader=new FileReader();
+  reader.onload=function(e) {
+    try {
+      const backup=JSON.parse(e.target.result);
+      if(!backup.data){showToast('❌ ভুল ফাইল ফরম্যাট!');return;}
+      if(!confirm('রিস্টোর করলে বর্তমান ডেটা মুছে যাবে! নিশ্চিত?')) return;
+      saveAll(backup.data);
+      showToast('✅ রিস্টোর সম্পন্ন!');
+      renderDashboard();
+    } catch(err) {
+      showToast('❌ ফাইল পড়তে সমস্যা!');
+    }
+  };
+  reader.readAsText(file);
+  input.value='';
+}
+
+function pasteRestoreData() {
+  if(currentRole!=='editor'){showToast('🔒 শুধু Editor রিস্টোর করতে পারবে');return;}
+  const text=prompt('ব্যাকআপ JSON টেক্সট পেস্ট করুন:');
+  if(!text) return;
+  try {
+    const backup=JSON.parse(text);
+    if(!backup.data){showToast('❌ ভুল ফরম্যাট!');return;}
+    if(!confirm('রিস্টোর করলে বর্তমান ডেটা মুছে যাবে! নিশ্চিত?')) return;
+    saveAll(backup.data);
+    showToast('✅ রিস্টোর সম্পন্ন!');
+    renderDashboard();
+  } catch(err) {
+    showToast('❌ ভুল JSON ফরম্যাট!');
+  }
+}
+
+// ══════════════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════════════
+function showToast(msg) {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+// ══════════════════════════════════════════════
+// PWA
+// ══════════════════════════════════════════════
+if('serviceWorker' in navigator) {
+  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+}
+</script>
+
+<!-- Google Identity Services -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script>
+const GOOGLE_CLIENT_ID = '963965389975-ffcjripb06iefuj71nf3frqivs5eplji.apps.googleusercontent.com';
+const DRIVE_FILE_NAME = 'unity-capital-backup.json';
+const DRIVE_FOLDER = 'Unity Capital Backups';
+let googleAccessToken = null;
+let googleUserEmail = null;
+
+// ── GOOGLE LOGIN ──
+function initGoogleLogin() {
+  google.accounts.oauth2.initTokenClient({
+    client_id: GOOGLE_CLIENT_ID,
+    scope: 'https://www.googleapis.com/auth/drive.file email profile',
+    callback: (response) => {
+      if(response.access_token) {
+        googleAccessToken = response.access_token;
+        fetchGoogleUserInfo();
+      }
+    }
+  }).requestAccessToken();
+}
+
+function fetchGoogleUserInfo() {
+  fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+    headers: { Authorization: 'Bearer ' + googleAccessToken }
+  }).then(r => r.json()).then(info => {
+    googleUserEmail = info.email;
+    DB.set('google_email', info.email);
+    updateGoogleUI(info.email);
+    showToast('✅ ' + info.email + ' লগইন সম্পন্ন!');
+    // Auto-check for backup after login
+    autoRestoreFromDrive();
+  });
+}
+
+function updateGoogleUI(email) {
+  const el = document.getElementById('google-status');
+  if(el) el.innerHTML = `<div style="background:var(--green-dim);border:1px solid var(--green);border-radius:8px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;">
+    <div><div style="font-size:12px;font-weight:700;color:var(--green);">✅ Google লগইন</div><div style="font-size:11px;color:var(--text2);margin-top:2px;">${email}</div></div>
+    <button onclick="googleLogout()" style="background:transparent;border:1px solid var(--red);color:var(--red);border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;">লগআউট</button>
+  </div>`;
+}
+
+function googleLogout() {
+  googleAccessToken = null;
+  googleUserEmail = null;
+  DB.set('google_email', null);
+  const el = document.getElementById('google-status');
+  if(el) renderGoogleLoginBtn();
+  showToast('লগআউট হয়েছে');
+}
+
+function renderGoogleLoginBtn() {
+  const el = document.getElementById('google-status');
+  if(el) el.innerHTML = `<button onclick="initGoogleLogin()" style="width:100%;padding:13px;background:white;color:#333;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;">
+    <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+    Google দিয়ে লগইন করুন
+  </button>`;
+}
+
+// ── DRIVE BACKUP ──
+async function backupToDrive() {
+  if(!googleAccessToken) { initGoogleLogin(); return; }
+  const backup = JSON.stringify({ version:2, exportDate:new Date().toISOString(), app:'Unity Capital v2', data:loadData() });
+  
+  showToast('⏳ Drive এ সেভ হচ্ছে...');
+  
+  try {
+    // Search for existing file
+    const search = await fetch(
+      `https://www.googleapis.com/drive/v3/files?q=name='${DRIVE_FILE_NAME}'&spaces=drive`,
+      { headers: { Authorization: 'Bearer ' + googleAccessToken } }
+    );
+    const searchResult = await search.json();
+    
+    let fileId = null;
+    if(searchResult.files && searchResult.files.length > 0) {
+      fileId = searchResult.files[0].id;
+    }
+    
+    const metadata = { name: DRIVE_FILE_NAME, mimeType: 'application/json' };
+    const blob = new Blob([backup], { type: 'application/json' });
+    const form = new FormData();
+    form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+    form.append('file', blob);
+    
+    let url = 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
+    let method = 'POST';
+    if(fileId) {
+      url = `https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=multipart`;
+      method = 'PATCH';
+    }
+    
+    const res = await fetch(url, { method, headers:{ Authorization:'Bearer '+googleAccessToken }, body:form });
+    if(res.ok) {
+      DB.set('last_backup', new Date().toISOString());
+      showToast('✅ Google Drive এ সেভ হয়েছে!');
+      updateBackupStatus();
+    } else {
+      showToast('❌ সেভ ব্যর্থ হয়েছে');
+    }
+  } catch(e) {
+    showToast('❌ সংযোগ সমস্যা');
+  }
+}
+
+async function restoreFromDrive() {
+  if(!googleAccessToken) { initGoogleLogin(); return; }
+  showToast('⏳ Drive থেকে লোড হচ্ছে...');
+  try {
+    const search = await fetch(
+      `https://www.googleapis.com/drive/v3/files?q=name='${DRIVE_FILE_NAME}'&spaces=drive`,
+      { headers: { Authorization: 'Bearer ' + googleAccessToken } }
+    );
+    const result = await search.json();
+    if(!result.files || result.files.length === 0) { showToast('❌ Drive এ কোনো ব্যাকআপ নেই'); return; }
+    
+    const fileId = result.files[0].id;
+    const fileRes = await fetch(
+      `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,
+      { headers: { Authorization: 'Bearer ' + googleAccessToken } }
+    );
+    const backup = await fileRes.json();
+    if(!backup.data) { showToast('❌ ভুল ফরম্যাট'); return; }
+    if(!confirm('Drive থেকে রিস্টোর করবেন? বর্তমান ডেটা মুছে যাবে!')) return;
+    saveAll(backup.data);
+    showToast('✅ রিস্টোর সম্পন্ন!');
+    renderDashboard();
+    updateBackupStatus();
+  } catch(e) {
+    showToast('❌ রিস্টোর ব্যর্থ');
+  }
+}
+
+async function autoRestoreFromDrive() {
+  // Auto-restore if no local data exists
+  const d = loadData();
+  if(d.deposits.length === 0 && d.investments.length === 0) {
+    showToast('⏳ Drive চেক করা হচ্ছে...');
+    try {
+      const search = await fetch(
+        `https://www.googleapis.com/drive/v3/files?q=name='${DRIVE_FILE_NAME}'&spaces=drive`,
+        { headers: { Authorization: 'Bearer ' + googleAccessToken } }
+      );
+      const result = await search.json();
+      if(result.files && result.files.length > 0) {
+        const fileId = result.files[0].id;
+        const fileRes = await fetch(
+          `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,
+          { headers: { Authorization: 'Bearer ' + googleAccessToken } }
+        );
+        const backup = await fileRes.json();
+        if(backup.data) {
+          saveAll(backup.data);
+          showToast('✅ Drive থেকে ডেটা রিকভার হয়েছে!');
+          renderDashboard();
+          updateBackupStatus();
+        }
+      } else {
+        showToast('ℹ️ Drive এ আগের ডেটা নেই');
+      }
+    } catch(e) { }
+  }
+}
+
+function updateBackupStatus() {
+  const last = DB.get('last_backup');
+  const el = document.getElementById('backup-status');
+  if(el && last) {
+    const d = new Date(last);
+    el.textContent = 'সর্বশেষ ব্যাকআপ: ' + d.toLocaleDateString('bn-BD') + ' ' + d.toLocaleTimeString('bn-BD', {hour:'2-digit',minute:'2-digit'});
+  }
+}
+
+// Auto-login if token exists in session
+window.addEventListener('load', () => {
+  const savedEmail = DB.get('google_email');
+  if(savedEmail) {
+    const statusEl = document.getElementById('google-status');
+    if(statusEl) updateGoogleUI(savedEmail);
+  }
+  updateBackupStatus();
+});
+</script>
+
+<script>
+window.addEventListener("load",()=>{const e=DB.get("google_email");const s=document.getElementById("google-status");if(s&&!e)renderGoogleLoginBtn();else if(s&&e)updateGoogleUI(e);updateBackupStatus();});
+</script>
+</body>
+</html>
